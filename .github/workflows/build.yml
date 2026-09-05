@@ -1,0 +1,38 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download project
+        uses: actions/checkout@v4
+
+      - name: Unzip game project
+        run: |
+          unzip -o SoediniCveti-1000x1000.zip -d game
+          find game -name gradlew -type f -exec chmod +x {} \;
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build APK
+        run: |
+          cd game
+          GRADLEW=$(find . -name gradlew -type f | head -1)
+          DIR=$(dirname "$GRADLEW")
+          cd "$DIR"
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoediniCveti1000-APK
+          path: game/**/build/outputs/apk/**/*.apk
